@@ -9,8 +9,31 @@ const commissioner = Commissioner({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://junaith.dev"),
   title: "Junaith | Software Developer & Game Programmer",
   description: "Portfolio of Junaith — Computer Science and Engineering Student, Software Developer, and Game Programmer.",
+  openGraph: {
+    title: "Junaith | Software Developer & Game Programmer",
+    description: "Portfolio of Junaith — Computer Science and Engineering Student, Software Developer, and Game Programmer.",
+    images: [
+      {
+        url: "/Images/Logo-red.svg",
+        alt: "Junaith Logo",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Junaith | Software Developer & Game Programmer",
+    description: "Portfolio of Junaith — Computer Science and Engineering Student, Software Developer, and Game Programmer.",
+    images: ["/Images/Logo-red.svg"],
+  },
+  icons: {
+    icon: "/Images/Logo-red.svg",
+    shortcut: "/Images/Logo-red.svg",
+    apple: "/Images/Logo-red.svg",
+  },
 };
 
 export default function RootLayout({
