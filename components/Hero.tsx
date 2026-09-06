@@ -271,6 +271,7 @@ export default function Hero() {
                       src="/Images/Logo-red.svg"
                       alt="Junaith Logo"
                       fill
+                      sizes="(max-width: 768px) 70vw, 420px"
                       className="object-contain"
                       priority
                     />
@@ -397,6 +398,7 @@ export default function Hero() {
                   src="/Images/Logo-red.svg"
                   alt="Junaith Logo"
                   fill
+                  sizes="(max-width: 768px) 70vw, 420px"
                   className="object-contain"
                   priority
                 />
