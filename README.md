@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portfolio Website - Junaith
+
+A modern, responsive portfolio website built for Junaith — Computer Science and Engineering Student, Software Developer, and Game Programmer.
+
+## Features
+
+- Responsive Layout: Dynamic dual-layout setup providing seamless vertical scroll on mobile devices and single-scroll horizontal section transition on desktop.
+- Animated Typography: Character-by-character reveal animations built using Framer Motion and styled with Commissioner typography.
+- Slanted Vector Accent: Custom SVG accent border that draws outwards from the center on initial load.
+- SEO & Performance Optimization: Single semantic H1 tag per DOM tree, clean section landmarks, structured metadata, and zero duplicate hidden DOM nodes.
+
+## Tech Stack
+
+- Framework: Next.js 16 (App Router with Turbopack)
+- Library: React 19
+- Language: TypeScript
+- Animations: Framer Motion
+- Styling: Tailwind CSS v4 with custom CSS theme variables
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+Ensure Node.js 18 or later is installed on your system.
+
+### Installation
+
+Clone the repository and install the dependencies:
+
+```bash
+cd frontend
+npm install
+```
+
+### Development
+
+Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Production Build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create an optimized production build:
 
-## Learn More
+```bash
+npm run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+To start the production server:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run start
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Code Formatting and Linting
 
-## Deploy on Vercel
+Run ESLint to check for syntax and style issues:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run lint
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project Structure
+
+```text
+frontend/
+├── app/
+│   ├── globals.css      # Custom design tokens, theme definitions, and scroll snap rules
+│   ├── layout.tsx       # Root layout, metadata configuration, and font integration
+│   ├── page.tsx         # Home page rendering the Hero component
+│   └── favicon.ico      # Site favicon
+├── components/
+│   ├── Hero.tsx         # Hero section component with dual responsive layouts
+│   └── About.tsx        # About section component
+├── public/
+│   └── Images/          # Static assets including vector logo files
+├── package.json         # Project dependencies and scripts
+└── tsconfig.json        # TypeScript configuration
+```
