@@ -92,7 +92,7 @@ export default function About() {
             fill
             className="object-cover object-center"
             priority
-            sizes="100vw"
+            sizes="(max-width: 768px) 100vw, 1px"
           />
         </div>
         <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-bg via-bg/80 to-transparent pointer-events-none" />

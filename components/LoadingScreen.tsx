@@ -6,8 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 const IMAGES_TO_PRELOAD = [
   "/Images/backgroudn.png",
   "/Images/bakground.png",
-  "/Images/shinejlogoonly.png",
-  "/Images/wideportrait.png",
+  "/Images/shinejlogoonly.avif",
+  "/Images/wideportrait.avif",
   "/Images/portraitonly.png",
   "/Images/shineJlogo.png",
   "/Images/fullname.png",

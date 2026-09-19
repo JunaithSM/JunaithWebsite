@@ -133,6 +133,7 @@ export default function Hero() {
                 alt="Hero Background"
                 fill
                 priority
+                sizes="(max-width: 768px) 100vw, 1px"
                 className="object-cover object-center"
               />
             </div>
@@ -198,7 +199,7 @@ export default function Hero() {
                 >
                   <div className="absolute inset-0 z-0">
                     <Image
-                      src="/Images/shinejlogoonly.png"
+                      src="/Images/shinejlogoonly.avif"
                       alt="Junaith Logo"
                       fill
                       sizes="(max-width: 768px) 85vw, 500px"
@@ -366,6 +367,7 @@ export default function Hero() {
                 alt="Hero Background"
                 fill
                 priority
+                sizes="(max-width: 768px) 1px, 50vw"
                 className="object-scale-down object-left"
               />
             </motion.div>
@@ -376,7 +378,7 @@ export default function Hero() {
               style={{ opacity: aboutBgOpacity }}
             >
               <Image
-                src="/Images/wideportrait.png"
+                src="/Images/wideportrait.avif"
                 alt="S Mohammed Junaith wide portrait"
                 fill
                 className="h-full w-auto max-w-none object-contain object-right ml-auto"
@@ -399,7 +401,7 @@ export default function Hero() {
             >
               <div className="absolute inset-0 z-0">
                 <Image
-                  src="/Images/shinejlogoonly.png"
+                  src="/Images/shinejlogoonly.avif"
                   alt="Junaith Logo"
                   fill
                   sizes="(max-width: 768px) 85vw, 620px"
