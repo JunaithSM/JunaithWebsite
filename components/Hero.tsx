@@ -1,109 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import About from "./About";
-
-// Helper component for character-by-character text reveal in HTML
-function AnimatedCharacters({ 
-  text, 
-  className = "", 
-  startDelay = 0, 
-  staggerDelay = 0.03,
-  highlightWord,
-  highlightClass = "text-primary"
-}: {
-  text: string;
-  className?: string;
-  startDelay?: number;
-  staggerDelay?: number;
-  highlightWord?: string;
-  highlightClass?: string;
-}) {
-  const words = text.split(" ");
-  let globalCharCount = 0;
-
-  return (
-    <span className={className}>
-      {words.map((word, wordIdx) => {
-        const isHighlighted = highlightWord && word.includes(highlightWord);
-        const wordChars = word.split("");
-
-        return (
-          <span key={wordIdx} className="inline-block whitespace-nowrap">
-            {wordChars.map((char, charIdx) => {
-              const charDelay = startDelay + globalCharCount * staggerDelay;
-              globalCharCount++;
-              return (
-                <motion.span
-                  key={charIdx}
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    duration: 0.15,
-                    delay: charDelay,
-                    ease: "easeOut"
-                  }}
-                  className={`inline-block ${isHighlighted ? highlightClass : ""}`}
-                >
-                  {char}
-                </motion.span>
-              );
-            })}
-            {wordIdx < words.length - 1 && (
-              <span className="inline-block">&nbsp;</span>
-            )}
-          </span>
-        );
-      })}
-    </span>
-  );
-}
-
-// Helper component for SVG text character-by-character reveal
-function AnimatedSvgText({
-  text,
-  x,
-  y,
-  startDelay = 0,
-  staggerDelay = 0.025,
-  fontSize = "17",
-  fill = "var(--color-text)",
-}: {
-  text: string;
-  x: number | string;
-  y: number | string;
-  startDelay?: number;
-  staggerDelay?: number;
-  fontSize?: string;
-  fill?: string;
-}) {
-  return (
-    <text
-      x={x}
-      y={y}
-      fill={fill}
-      fontSize={fontSize}
-      fontWeight="400"
-      style={{ fontFamily: "var(--font-commissioner), sans-serif" }}
-    >
-      {text.split("").map((char, index) => (
-        <motion.tspan
-          key={index}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{
-            duration: 0.08,
-            delay: startDelay + index * staggerDelay,
-          }}
-        >
-          {char}
-        </motion.tspan>
-      ))}
-    </text>
-  );
-}
+import { AnimatedCharacters, AnimatedSvgText } from "./ui/AnimatedText";
 
 const subscribeResize = (callback: () => void) => {
   window.addEventListener("resize", callback);
@@ -130,6 +31,25 @@ export default function Hero() {
   const mounted = useIsMounted();
   const isMobile = useIsMobile();
 
+  // Trigger animations only after loading screen has completely finished and unmounted
+  const [isLoadedReady, setIsLoadedReady] = useState(() => {
+    if (typeof window !== "undefined" && (window as any).__loadingComplete) {
+      return true;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (isLoadedReady) return;
+
+    const handleLoadingComplete = () => {
+      setIsLoadedReady(true);
+    };
+
+    window.addEventListener("loadingComplete", handleLoadingComplete);
+    return () => window.removeEventListener("loadingComplete", handleLoadingComplete);
+  }, [isLoadedReady]);
+
   const { scrollYProgress } = useScroll({
     target: desktopContainerRef,
     offset: ["start start", "end end"],
@@ -143,6 +63,8 @@ export default function Hero() {
 
   const heroX = useTransform(smoothProgress, [0, 1], ["0%", "-100%"]);
   const aboutX = useTransform(smoothProgress, [0, 1], ["100%", "0%"]);
+  const heroOpacity = useTransform(smoothProgress, [0, 0.4], [1, 0]);
+  const aboutBgOpacity = useTransform(smoothProgress, [0.1, 0.6], [0, 1]);
 
   // Single-scroll snap trigger on desktop
   useEffect(() => {
@@ -204,8 +126,16 @@ export default function Hero() {
         <div className="block md:hidden">
           {/* Mobile Hero Section */}
           <div className="min-h-screen relative overflow-hidden">
-            {/* Base background */}
-            <div className="absolute inset-0 bg-none z-0" />
+            {/* Base background image for top portion */}
+            <div className="absolute inset-0 z-0 select-none pointer-events-none">
+              <Image
+                src="/Images/backgroudn.png"
+                alt="Hero Background"
+                fill
+                priority
+                className="object-cover object-center"
+              />
+            </div>
 
             {/* Red SVG border line — 5px thickness, animated from intersection corner outwards */}
             <svg aria-hidden="true" className="absolute inset-0 w-full h-full pointer-events-none z-15 overflow-visible">
@@ -218,10 +148,10 @@ export default function Hero() {
                 strokeWidth="5" 
                 strokeLinecap="round"
                 initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
+                animate={{ pathLength: isLoadedReady ? 1 : 0 }}
                 transition={{
                   duration: 1.2,
-                  delay: 0.1,
+                  delay: isLoadedReady ? 0.1 : 0,
                   ease: [0.16, 1, 0.3, 1]
                 }}
               />
@@ -234,10 +164,10 @@ export default function Hero() {
                 strokeWidth="5" 
                 strokeLinecap="round"
                 initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
+                animate={{ pathLength: isLoadedReady ? 1 : 0 }}
                 transition={{
                   duration: 1.2,
-                  delay: 0.1,
+                  delay: isLoadedReady ? 0.1 : 0,
                   ease: [0.16, 1, 0.3, 1]
                 }}
               />
@@ -257,21 +187,21 @@ export default function Hero() {
               <div className="relative select-none" style={{ height: '45vh' }}>
                 <motion.div 
                   initial={{ x: 80, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
+                  animate={isLoadedReady ? { x: 0, opacity: 1 } : { x: 80, opacity: 0 }}
                   transition={{
                     duration: 1.2,
-                    delay: 1.3,
+                    delay: isLoadedReady ? 1.3 : 0,
                     ease: [0.16, 1, 0.3, 1]
                   }}
-                  className="absolute top-1/2 -translate-y-1/2 w-56 sm:w-72 aspect-[722/784] select-none"
-                  style={{ left: '20vw' }}
+                  className="absolute top-1/2 -translate-y-1/2 w-72 sm:w-96 aspect-[722/784] select-none"
+                  style={{ left: '10vw' }}
                 >
                   <div className="absolute inset-0 z-0">
                     <Image
-                      src="/Images/Logo-red.svg"
+                      src="/Images/shinejlogoonly.png"
                       alt="Junaith Logo"
                       fill
-                      sizes="(max-width: 768px) 70vw, 420px"
+                      sizes="(max-width: 768px) 85vw, 500px"
                       className="object-contain"
                       priority
                     />
@@ -284,85 +214,123 @@ export default function Hero() {
                 
                 {/* Main Greeting */}
                 <div className="mb-8">
-                  <h1 className="text-5xl pt-10 sm:text-5xl font-normal tracking-tight text-text select-none leading-tight">
+                  <h1 className="text-2xl sm:text-3xl font-hedvig font-normal tracking-tight text-text select-none leading-tight pt-4">
                     <AnimatedCharacters 
                       text="Hi, I am Junaith" 
                       startDelay={1.3}
                       staggerDelay={0.04}
+                      className="font-hedvig"
+                      animate={isLoadedReady}
                     />
                   </h1>
                 </div>
 
                 {/* Stair-step Roles & Connecting Red Line */}
                 <div className="select-none flex-1 flex flex-col justify-center">
-                  <svg 
-                    aria-label="Roles: Game Programmer, Software developer, Computer Science and Engineering Student"
-                    role="img"
-                    viewBox="0 0 550 200" 
-                    className="w-full h-auto overflow-visible"
-                    preserveAspectRatio="xMinYMin meet"
-                  >
-                    {/* Role 3 — bottom-left: Game Programmer */}
-                    <AnimatedSvgText 
-                      text="Game Programmer"
-                      x="0"
-                      y="165"
-                      startDelay={2.7}
-                      staggerDelay={0.025}
-                      fontSize="15"
-                      fill="var(--color-text)"
-                    />
+                  <div className="relative">
+                    <svg 
+                      aria-label="Roles: Game Programmer, Software developer, Computer Science and Engineering Student, About me"
+                      role="img"
+                      viewBox="0 0 550 230" 
+                      className="w-full h-auto overflow-visible"
+                      preserveAspectRatio="xMinYMin meet"
+                    >
+                      {/* Role 3 — bottom-left: Computer Science and Engineering Student */}
+                      <AnimatedSvgText 
+                        text="Game Programmer"
+                        x="0"
+                        y="165"
+                        startDelay={1.75}
+                        staggerDelay={0.02}
+                        fontSize="14"
+                        fill="var(--color-text)"
+                        fontFamily="var(--font-instrument), Georgia, serif"
+                        animate={isLoadedReady}
+                      />
 
-                    {/* Role 2 — middle: Software developer */}
-                    <AnimatedSvgText 
-                      text="Software developer"
-                      x="120"
-                      y="100"
-                      startDelay={2.3}
-                      staggerDelay={0.025}
-                      fontSize="15"
-                      fill="var(--color-text)"
-                    />
+                      {/* Role 2 — middle: Software developer */}
+                      <AnimatedSvgText 
+                        text="Software developer"
+                        x="170"
+                        y="100"
+                        startDelay={2.3}
+                        staggerDelay={0.025}
+                        fontSize="14"
+                        fill="var(--color-text)"
+                        fontFamily="var(--font-instrument), Georgia, serif"
+                        animate={isLoadedReady}
+                      />
 
-                    {/* Role 1 — top-right: Computer Science and Engineering Student */}
-                    <AnimatedSvgText 
-                      text="Computer Science and Engineering Student"
-                      x="215"
-                      y="35"
-                      startDelay={1.75}
-                      staggerDelay={0.02}
-                      fontSize="15"
-                      fill="var(--color-text)"
-                    />
+                      {/* Role 1 — top-right: Game Programmer */}
+                      <AnimatedSvgText 
+                        text="Computer Science and Engineering Student"
+                        x="260"
+                        y="35"
+                        startDelay={2.7}
+                        staggerDelay={0.025}
+                        fontSize="14"
+                        fill="var(--color-text)"
+                        fontFamily="var(--font-instrument), Georgia, serif"
+                        animate={isLoadedReady}
+                      />
 
-                    {/* Red Animated Stair-Step Line */}
-                    <motion.path 
-                      aria-hidden="true"
-                      d="M 0,185 L 150,185 L 195,120 L 265,120 L 315,55 L 570,55" 
-                      stroke="var(--color-primary)" 
-                      strokeWidth="1.5" 
-                      fill="none" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round"
-                      initial={{ pathLength: 0 }}
-                      animate={{ pathLength: 1 }}
-                      transition={{
-                        duration: 1.6,
-                        delay: 1.7,
-                        ease: "easeInOut"
+                      {/* About me → link */}
+                      <AnimatedSvgText 
+                        text="About me →"
+                        x="370"
+                        y="130"
+                        startDelay={3.0}
+                        staggerDelay={0.03}
+                        fontSize="14"
+                        fill="var(--color-text)"
+                        fontFamily="var(--font-instrument), Georgia, serif"
+                        animate={isLoadedReady}
+                      />
+
+                      {/* Red Animated Stair-Step Line */}
+                      <motion.path 
+                        aria-hidden="true"
+                        d="M 0,185 L 140,185 L 195,120 L 265,120 L 315,55 L 570,55" 
+                        stroke="var(--color-primary)" 
+                        strokeWidth="1.5" 
+                        fill="none" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                        initial={{ pathLength: 0 }}
+                        animate={{ pathLength: isLoadedReady ? 1 : 0 }}
+                        transition={{
+                          duration: 1.6,
+                          delay: isLoadedReady ? 1.7 : 0,
+                          ease: "easeInOut"
+                        }}
+                      />
+                    </svg>
+
+                    <a
+                      href="#about"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        const aboutEl = document.getElementById("about");
+                        if (aboutEl) {
+                          aboutEl.scrollIntoView({ behavior: "smooth" });
+                        }
                       }}
+                      className="absolute right-0 bottom-[15%] w-32 h-10 cursor-pointer z-30 focus:outline-none"
+                      aria-label="Scroll to About section"
                     />
-                  </svg>
+                  </div>
                 </div>
 
                 {/* Quote at the bottom */}
-                <blockquote className="mt-auto pt-6 text-sm text-center sm:text-lg text-text font-normal select-none leading-relaxed" style={{ paddingBottom: '15%' }}>
+                <blockquote className="mt-auto pt-6 text-sm text-center sm:text-lg text-text font-instrument font-normal select-none leading-relaxed" style={{ paddingBottom: '15%' }}>
                   <AnimatedCharacters 
                     text={"\u201CA journey of a thousand miles begins with a single step.\u201D"}
                     startDelay={3.0}
                     staggerDelay={0.02}
                     highlightWord="journey"
                     highlightClass="text-primary"
+                    className="font-instrument"
+                    animate={isLoadedReady}
                   />
                 </blockquote>
               </header>
@@ -381,24 +349,60 @@ export default function Hero() {
           {/* Sticky Viewport */}
           <div className="sticky top-0 h-screen w-full overflow-hidden bg-none relative">
 
-            {/* Fixed Left Logo Layer — Stays in fixed position in back layer (z-5) */}
+            {/* Fixed Background Image Layer — Left Hero texture (z-0) */}
             <motion.div 
-              initial={{ x: 160, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
+              initial={{ x: 0, opacity: 0 }}
+              animate={isLoadedReady ? { x: 0, opacity: 1 } : { x: 0, opacity: 0 }}
               transition={{
                 duration: 1.2,
-                delay: 1.3,
+                delay: isLoadedReady ? 0.1 : 0,
                 ease: [0.16, 1, 0.3, 1]
               }}
-              className="absolute top-1/2 -translate-y-1/2 z-5 w-64 sm:w-80 md:w-96 lg:w-[380px] xl:w-[420px] aspect-[722/784] select-none pointer-events-none"
-              style={{ left: '10vw' }}
+              className="absolute inset-0 z-0 select-none pointer-events-none"
+              style={{ opacity: heroOpacity }}
+            >
+              <Image
+                src="/Images/backgroudn.png"
+                alt="Hero Background"
+                fill
+                priority
+                className="object-scale-down object-left"
+              />
+            </motion.div>
+
+            {/* Fixed Right About Background Image Layer — Fades in on scroll to About (z-0) */}
+            <motion.div 
+              className="absolute inset-0 z-0 select-none pointer-events-none"
+              style={{ opacity: aboutBgOpacity }}
+            >
+              <Image
+                src="/Images/wideportrait.png"
+                alt="S Mohammed Junaith wide portrait"
+                fill
+                className="h-full w-auto max-w-none object-contain object-right ml-auto"
+                priority
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
+            </motion.div>
+
+            {/* Fixed Left Logo Layer — Fades out on scroll to About (z-5) */}
+            <motion.div 
+              initial={{ x: "100%", opacity: 0 }}
+              animate={isLoadedReady ? { x: 0, opacity: 1 } : { x: "100%", opacity: 0 }}
+              transition={{
+                duration: 1.2,
+                delay: isLoadedReady ? 1.3 : 0,
+                ease: [0.16, 1, 0.3, 1]
+              }}
+              className="absolute top-1/2 -translate-y-1/2 z-5 w-70 sm:w-96 md:w-[460px] lg:w-[540px] xl:w-[620px] aspect-[722/784] select-none pointer-events-none"
+              style={{ left: '3vw', opacity: heroOpacity }}
             >
               <div className="absolute inset-0 z-0">
                 <Image
-                  src="/Images/Logo-red.svg"
+                  src="/Images/shinejlogoonly.png"
                   alt="Junaith Logo"
                   fill
-                  sizes="(max-width: 768px) 70vw, 420px"
+                  sizes="(max-width: 768px) 85vw, 620px"
                   className="object-contain"
                   priority
                 />
@@ -421,10 +425,10 @@ export default function Hero() {
                   strokeWidth="5" 
                   strokeLinecap="round"
                   initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
+                  animate={{ pathLength: isLoadedReady ? 1 : 0 }}
                   transition={{
                     duration: 1.2,
-                    delay: 0.1,
+                    delay: isLoadedReady ? 0.1 : 0,
                     ease: [0.16, 1, 0.3, 1]
                   }}
                 />
@@ -437,10 +441,10 @@ export default function Hero() {
                   strokeWidth="5" 
                   strokeLinecap="round"
                   initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
+                  animate={{ pathLength: isLoadedReady ? 1 : 0 }}
                   transition={{
                     duration: 1.2,
-                    delay: 0.1,
+                    delay: isLoadedReady ? 0.1 : 0,
                     ease: [0.16, 1, 0.3, 1]
                   }}
                 />
@@ -458,11 +462,13 @@ export default function Hero() {
               <header className="relative w-full max-w-7xl mx-auto min-h-[75vh] pointer-events-auto">
                 {/* Main Greeting — absolutely positioned */}
                 <div className="absolute z-20" style={{ top: '15%', left: '50%' }}>
-                  <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-normal tracking-tight text-text select-none leading-tight">
+                  <h1 className="text-[5vw] xl:text-[4.5vw] font-hedvig font-normal tracking-tight text-text select-none leading-tight">
                     <AnimatedCharacters 
                       text="Hi, I am Junaith" 
                       startDelay={1.3}
                       staggerDelay={0.04}
+                      className="font-hedvig"
+                      animate={isLoadedReady}
                     />
                   </h1>
                 </div>
@@ -470,58 +476,101 @@ export default function Hero() {
 
               {/* Stair-step Roles & Connecting Red Line */}
               <div className="absolute z-20 select-none pointer-events-auto" style={{ bottom: '25%', right: '5%', width: '55%' }}>
-                <svg 
-                  aria-label="Roles: Computer Science and Engineering Student, Software developer, Game Programmer"
-                  role="img"
-                  viewBox="0 0 860 190" 
-                  className="w-full h-auto overflow-visible"
-                >
-                  <motion.path 
-                    aria-hidden="true"
-                    d="M 0,175 L 350,175 L 435,110 L 595,110 L 680,45 L 860,45" 
-                    stroke="var(--color-primary)" 
-                    strokeWidth="2" 
-                    fill="none" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{
-                      duration: 1.6,
-                      delay: 1.7,
-                      ease: "easeInOut"
+                <div className="relative">
+                  <svg 
+                    aria-label="Roles: Computer Science and Engineering Student, Software developer, Game Programmer, About me"
+                    role="img"
+                    viewBox="0 0 860 190" 
+                    className="w-full h-auto overflow-visible"
+                  >
+                    <motion.path 
+                      aria-hidden="true"
+                      d="M 0,175 L 350,175 L 435,110 L 595,110 L 680,45 L 860,45" 
+                      stroke="var(--color-primary)" 
+                      strokeWidth="2" 
+                      fill="none" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                      initial={{ pathLength: 0 }}
+                      animate={{ pathLength: isLoadedReady ? 1 : 0 }}
+                      transition={{
+                        duration: 1.6,
+                        delay: isLoadedReady ? 1.7 : 0,
+                        ease: "easeInOut"
+                      }}
+                    />
+
+                    <AnimatedSvgText 
+                      text="Computer Science and Engineering Student"
+                      x="0"
+                      y="160"
+                      startDelay={1.75}
+                      staggerDelay={0.02}
+                      fontFamily="var(--font-instrument), Georgia, serif"
+                      fontSize="16"
+                      animate={isLoadedReady}
+                    />
+
+                    <AnimatedSvgText 
+                      text="Software developer"
+                      x="440"
+                      y="95"
+                      startDelay={2.3}
+                      staggerDelay={0.025}
+                      fontFamily="var(--font-instrument), Georgia, serif"
+                      fontSize="16"
+                      animate={isLoadedReady}
+                    />
+
+                    <AnimatedSvgText 
+                      text="Game Programmer"
+                      x="680"
+                      y="30"
+                      startDelay={2.7}
+                      staggerDelay={0.025}
+                      fontFamily="var(--font-instrument), Georgia, serif"
+                      fontSize="16"
+                      animate={isLoadedReady}
+                    />
+
+                    {/* About me → link */}
+                    <AnimatedSvgText 
+                      text="About me →"
+                      x="740"
+                      y="125"
+                      startDelay={3.0}
+                      staggerDelay={0.03}
+                      fontFamily="var(--font-instrument), Georgia, serif"
+                      fontSize="16"
+                      fill="var(--color-text)"
+                      animate={isLoadedReady}
+                    />
+                  </svg>
+
+                  {/* Interactive Click Target for About me → */}
+                  <a
+                    href="#about"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const container = desktopContainerRef.current;
+                      if (container) {
+                        const rect = container.getBoundingClientRect();
+                        const scrollableDistance = rect.height - window.innerHeight;
+                        window.scrollTo({
+                          top: window.scrollY + rect.top + scrollableDistance,
+                          behavior: "smooth",
+                        });
+                      }
                     }}
+                    className="absolute right-0 bottom-[20%] w-36 h-10 cursor-pointer z-30 focus:outline-none focus:ring-0 outline-none"
+                    aria-label="Scroll to About section"
                   />
-
-                  <AnimatedSvgText 
-                    text="Computer Science and Engineering Student"
-                    x="0"
-                    y="160"
-                    startDelay={1.75}
-                    staggerDelay={0.02}
-                  />
-
-                  <AnimatedSvgText 
-                    text="Software developer"
-                    x="440"
-                    y="95"
-                    startDelay={2.3}
-                    staggerDelay={0.025}
-                  />
-
-                  <AnimatedSvgText 
-                    text="Game Programmer"
-                    x="680"
-                    y="30"
-                    startDelay={2.7}
-                    staggerDelay={0.025}
-                  />
-                </svg>
+                </div>
               </div>
 
               {/* Bottom Quote */}
               <blockquote 
-                className="absolute -translate-x-1/2 z-20 text-base sm:text-lg md:text-xl lg:text-2xl text-text font-normal select-none text-center whitespace-nowrap pointer-events-auto"
+                className="absolute -translate-x-1/2 z-20 text-base sm:text-lg md:text-xl lg:text-2xl text-text font-instrument font-normal select-none text-center whitespace-nowrap pointer-events-auto"
                 style={{ bottom: '10%', left:"53%" }}
               >
                 <AnimatedCharacters 
@@ -530,13 +579,15 @@ export default function Hero() {
                   staggerDelay={0.02}
                   highlightWord="journey"
                   highlightClass="text-primary"
+                  className="font-instrument"
+                  animate={isLoadedReady}
                 />
               </blockquote>
             </motion.div>
 
-            {/* About Section Layer — moves in from right on scroll, covering the logo (z-20) */}
+            {/* About Section Layer — moves in from right on scroll */}
             <motion.div 
-              className="absolute inset-0 z-20 w-full h-full bg-bg"
+              className="absolute inset-0 z-20 w-full h-full bg-transparent"
               style={{ x: aboutX }}
             >
               <About />
