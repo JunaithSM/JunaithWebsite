@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import About from "./About";
 import { AnimatedCharacters, AnimatedSvgText } from "./ui/AnimatedText";
+import SocialLinks from "./ui/SocialLinks";
 
 const subscribeResize = (callback: () => void) => {
   window.addEventListener("resize", callback);
@@ -224,6 +225,7 @@ export default function Hero() {
                       animate={isLoadedReady}
                     />
                   </h1>
+                  <SocialLinks animate={isLoadedReady} className="mt-4" />
                 </div>
 
                 {/* Stair-step Roles & Connecting Red Line */}
@@ -473,6 +475,7 @@ export default function Hero() {
                       animate={isLoadedReady}
                     />
                   </h1>
+                  <SocialLinks animate={isLoadedReady} className="mt-4" />
                 </div>
               </header>
 
